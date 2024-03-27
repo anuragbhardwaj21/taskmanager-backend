@@ -4,7 +4,6 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const authController = require("./controllers/authController");
 const taskManagerController = require("./controllers/taskManagerController");
-const authMiddleware = require("./utils/auth");
 dotenv.config();
 
 const app = express();

@@ -2,22 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Task = require("../models/Tasks");
 
-exports.verifyToken = async (req, res, next) => {
-  const token = req.headers.authorization.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "Token not provided" });
-  }
-
-  try {
-    const decoded = jwt.verify(token, "anurag");
-    req.userId = decoded.userId;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
-};
-
 exports.addTask = async (req, res) => {
   try {
     const { title, status, created } = req.body;
@@ -26,7 +10,7 @@ exports.addTask = async (req, res) => {
       title,
       status,
       created,
-      createdBy: req.userId,
+      createdBy: req.userData.userId,
     });
 
     await task.save();
@@ -42,7 +26,7 @@ exports.updateTask = async (req, res) => {
     const { title, status, deadline } = req.body;
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, createdBy: req.userId },
+      { _id: id, createdBy: req.userData.userId },
       { title, status, deadline },
       { new: true }
     );
@@ -63,7 +47,7 @@ exports.deleteTask = async (req, res) => {
 
     const task = await Task.findOneAndDelete({
       _id: id,
-      createdBy: req.userId,
+      createdBy: req.userData.userId,
     });
 
     if (!task) {
@@ -78,7 +62,8 @@ exports.deleteTask = async (req, res) => {
 
 exports.allTask = async (req, res) => {
   try {
-    const tasks = await Task.find({ createdBy: req.userId });
+    const id = req.userData.userId;
+    const tasks = await Task.find({ createdBy: id });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ error: error.message });
